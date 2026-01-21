@@ -85,6 +85,13 @@ export default function OverlayClient({ searchParams }) {
     }
     return Math.min(Math.max(raw, 5000), 60000);
   }, [searchParams]);
+  const hideMs = useMemo(() => {
+    const raw = Number(getSearchParam(searchParams, "hide") ?? 20000);
+    if (!Number.isFinite(raw)) {
+      return 20000;
+    }
+    return Math.min(Math.max(raw, 5000), 60000);
+  }, [searchParams]);
   const pollMs = useMemo(() => {
     const raw = Number(getSearchParam(searchParams, "poll") ?? 3000);
     if (!Number.isFinite(raw)) {
@@ -98,6 +105,7 @@ export default function OverlayClient({ searchParams }) {
   const [startTime, setStartTime] = useState(null);
   const [, setTick] = useState(0);
   const [error, setError] = useState("");
+  const completedReadingRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -120,6 +128,7 @@ export default function OverlayClient({ searchParams }) {
             data.reading.id !== activeReadingIdRef.current
           ) {
             activeReadingIdRef.current = data.reading.id;
+            completedReadingRef.current = null;
             setStartTime(Date.now());
           }
           setError("");
@@ -147,6 +156,30 @@ export default function OverlayClient({ searchParams }) {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!reading?.id || !startTime) {
+      return;
+    }
+
+    const totalCards = reading.cards?.length ?? 0;
+    if (!totalCards) {
+      return;
+    }
+
+    const summaryStart = celebrateMs + stepMs * totalCards;
+    const summaryEnd = summaryStart + hideMs;
+    const elapsed = Date.now() - startTime;
+
+    if (elapsed >= summaryEnd && completedReadingRef.current !== reading.id) {
+      completedReadingRef.current = reading.id;
+      fetch("/api/tarot/reading/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: reading.id }),
+      }).catch(() => {});
+    }
+  }, [reading?.id, reading?.cards?.length, startTime, celebrateMs, stepMs, hideMs, tick]);
 
   useEffect(() => {
     if (transparent) {
@@ -202,9 +235,10 @@ export default function OverlayClient({ searchParams }) {
               Math.floor(cardsElapsed / stepMs),
               Math.max(totalCards - 1, 0)
             );
-            const showingAll =
-              totalCards > 0 &&
-              elapsed >= cardsStart + stepMs * totalCards;
+            const summaryStart = cardsStart + stepMs * totalCards;
+            const summaryEnd = summaryStart + hideMs;
+            const showingAll = totalCards > 0 && elapsed >= summaryStart;
+            const expired = totalCards > 0 && elapsed >= summaryEnd;
             const cardsToShow = showingAll
               ? reading.cards
               : reading.cards?.length
@@ -225,6 +259,12 @@ export default function OverlayClient({ searchParams }) {
                     Taro sākas pēc {secondsLeft} sekundēm
                   </div>
                 </div>
+              );
+            }
+
+            if (expired) {
+              return minimal ? null : (
+                <div className="empty-state">Gaida nākamo dāvanu...</div>
               );
             }
 

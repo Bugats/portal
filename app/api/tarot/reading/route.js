@@ -6,10 +6,11 @@ import {
   DEFAULT_THEME,
 } from "../../../../lib/tarot";
 import {
+  enqueueReading,
   getDeckState,
   getLatestReading,
+  getQueueLength,
   setDeckState,
-  setLatestReading,
 } from "../../../../lib/tarotStore";
 
 export const dynamic = "force-dynamic";
@@ -52,9 +53,10 @@ function buildGift(payload) {
 }
 
 export async function GET() {
-  const reading = getLatestReading();
+  const reading = await getLatestReading();
+  const queueLength = await getQueueLength();
   return NextResponse.json(
-    { reading },
+    { reading, queueLength },
     { headers: { "Cache-Control": "no-store" } }
   );
 }
@@ -91,8 +93,9 @@ export async function POST(request) {
     );
   }
 
-  const { drawn, deckState } = drawFromDeck(cards, count, getDeckState());
-  setDeckState(deckState);
+  const currentDeckState = await getDeckState();
+  const { drawn, deckState } = drawFromDeck(cards, count, currentDeckState);
+  await setDeckState(deckState);
 
   const reading = buildReading(cards, {
     count,
@@ -102,10 +105,15 @@ export async function POST(request) {
     drawnCards: drawn,
   });
 
-  setLatestReading(reading);
+  const enqueueResult = await enqueueReading(reading);
 
   return NextResponse.json(
-    { reading },
+    {
+      reading,
+      status: enqueueResult.status,
+      activeReading: enqueueResult.active,
+      queueLength: enqueueResult.queueLength,
+    },
     { headers: { "Cache-Control": "no-store" } }
   );
 }

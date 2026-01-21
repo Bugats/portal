@@ -6,9 +6,9 @@ import {
   DEFAULT_THEME,
 } from "../../../../lib/tarot";
 import {
+  enqueueReading,
   getDeckState,
   setDeckState,
-  setLatestReading,
 } from "../../../../lib/tarotStore";
 
 export const dynamic = "force-dynamic";
@@ -154,8 +154,9 @@ export async function POST(request) {
     );
   }
 
-  const { drawn, deckState } = drawFromDeck(cards, count, getDeckState());
-  setDeckState(deckState);
+  const currentDeckState = await getDeckState();
+  const { drawn, deckState } = drawFromDeck(cards, count, currentDeckState);
+  await setDeckState(deckState);
 
   const reading = buildReading(cards, {
     count,
@@ -165,7 +166,12 @@ export async function POST(request) {
     drawnCards: drawn,
   });
 
-  setLatestReading(reading);
+  const enqueueResult = await enqueueReading(reading);
 
-  return NextResponse.json({ status: "ok", reading });
+  return NextResponse.json({
+    status: enqueueResult.status,
+    reading,
+    activeReading: enqueueResult.active,
+    queueLength: enqueueResult.queueLength,
+  });
 }
