@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 function OverlayFallback() {
   return (
     <main className="container overlay">
-      <div className="empty-state">Loading overlay...</div>
+      <div className="empty-state">Ielādē overlay...</div>
     </main>
   );
 }

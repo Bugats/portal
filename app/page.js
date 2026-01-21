@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-const POSITIONS = ["Past", "Present", "Future"];
+const POSITIONS = ["Pagātne", "Tagadne", "Nākotne"];
 
 function formatArcana(card) {
-  return card.type === "major" ? "Major Arcana" : "Minor Arcana";
+  return card.type === "major" ? "Lielie Arkāni" : "Mazie Arkāni";
 }
 
 export default function HomePage() {
@@ -29,7 +29,7 @@ export default function HomePage() {
       const data = await response.json();
       setCards(Array.isArray(data.cards) ? data.cards : []);
     } catch (err) {
-      setError("Unable to load the tarot cards right now.");
+      setError("Nevar ielādēt tarot kārtis.");
     } finally {
       setLoading(false);
     }
@@ -42,17 +42,17 @@ export default function HomePage() {
   return (
     <main className="container">
       <header className="header">
-        <div className="eyebrow">Tarot overlay demo</div>
-        <h1 className="title">Three-card tarot draw</h1>
+        <div className="eyebrow">Tarot overlay demonstrācija</div>
+        <h1 className="title">Trīs kāršu tarot izlikums</h1>
         <p className="subtitle">
-          Uses an external tarot data API and external image hosting so you can
-          show a quick three-card spread during a stream trigger.
+          Izmanto ārēju tarot datu API un bilžu hostingu, lai parādītu trīs
+          kāršu izlikumu tiešraides laikā.
         </p>
         <div className="controls">
           <button className="button" onClick={drawCards} disabled={loading}>
-            {loading ? "Drawing..." : "Draw 3 cards"}
+            {loading ? "Izlozē..." : "Izvilkt 3 kārtis"}
           </button>
-          <span className="hint">For entertainment only.</span>
+          <span className="hint">Tikai izklaidei.</span>
         </div>
       </header>
 
@@ -86,19 +86,19 @@ export default function HomePage() {
 
       <footer className="footer">
         <div>
-          Overlay: <a href="/overlay">/overlay</a> (polls{" "}
-          <code>/api/tarot/reading</code>, reveal delay via{" "}
+          Overlay: <a href="/overlay">/overlay</a> (lasa{" "}
+          <code>/api/tarot/reading</code>, atklāšanas aizture ar{" "}
           <code>?delay=5000</code>).
         </div>
         <div>
-          Webhook: <code>POST /api/tiktok/gift</code> with{" "}
-          <code>{`{ giftName, userName }`}</code>. Configure trigger gifts with{" "}
-          <code>TAROT_GIFT_TRIGGER</code> (default: train), or use{" "}
-          <code>TAROT_GIFT_IDS</code> / <code>TAROT_GIFT_MIN_VALUE</code> for
-          language-proof matching.
+          Webhook: <code>POST /api/tiktok/gift</code> ar{" "}
+          <code>{`{ giftName, userName }`}</code>. Dāvanu trigeri iestati ar{" "}
+          <code>TAROT_GIFT_TRIGGER</code> (default: train), vai izmanto{" "}
+          <code>TAROT_GIFT_IDS</code> / <code>TAROT_GIFT_MIN_VALUE</code>{" "}
+          valodas drošai atbilstībai.
         </div>
         <div>
-          Data source: tarotapi.dev. Images hosted on GitHub
+          Datu avots: tarotapi.dev. Attēli hostēti GitHub
           (renanbotasse/tarot, MIT license).
         </div>
       </footer>

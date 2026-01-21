@@ -11,11 +11,11 @@ function getSearchParam(searchParams, key) {
 }
 
 function formatArcana(card) {
-  return card.type === "major" ? "Major Arcana" : "Minor Arcana";
+  return card.type === "major" ? "Lielie Arkāni" : "Mazie Arkāni";
 }
 
 function formatOrientation(card) {
-  return card.orientation === "reversed" ? "Reversed" : "Upright";
+  return card.orientation === "reversed" ? "Apgriezta" : "Taisni";
 }
 
 function formatTime(timestamp) {
@@ -62,7 +62,7 @@ export default function OverlayClient({ searchParams }) {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to load reading.");
+          throw new Error("Neizdevās ielādēt pareģojumu.");
         }
 
         const data = await response.json();
@@ -72,7 +72,7 @@ export default function OverlayClient({ searchParams }) {
         }
       } catch (err) {
         if (isMounted) {
-          setError("Unable to load reading.");
+          setError("Nevar ielādēt pareģojumu.");
         }
       }
     };
@@ -122,18 +122,18 @@ export default function OverlayClient({ searchParams }) {
   return (
     <main className="container overlay">
       <header className="header">
-        <div className="eyebrow">Live gift reading</div>
-        <h1 className="title">Three-card tarot</h1>
+        <div className="eyebrow">Dāvanu pareģojums tiešraidē</div>
+        <h1 className="title">Trīs kāršu tarot</h1>
         <p className="subtitle">
-          This overlay updates when the gift trigger fires. Add this page to OBS
-          as a browser source.
+          Overlay atjaunojas, kad nostrādā dāvanas trigeris. Pievieno šo lapu
+          Live Studio kā pārlūka avotu.
         </p>
         <div className="meta">
           {reading?.viewer?.name ? (
-            <span className="badge">Viewer: {reading.viewer.name}</span>
+            <span className="badge">Skatītājs: {reading.viewer.name}</span>
           ) : null}
           {reading?.gift?.name ? (
-            <span className="badge">Gift: {reading.gift.name}</span>
+            <span className="badge">Dāvana: {reading.gift.name}</span>
           ) : null}
           {reading?.createdAt ? (
             <span className="card-type">{formatTime(reading.createdAt)}</span>
@@ -148,11 +148,11 @@ export default function OverlayClient({ searchParams }) {
       ) : null}
 
       {!reading ? (
-        <div className="empty-state">Waiting for a gift trigger...</div>
+        <div className="empty-state">Gaida dāvanas trigeri...</div>
       ) : (
         <>
           {revealCount === 0 ? (
-            <div className="empty-state">Shuffling cards...</div>
+            <div className="empty-state">Jaucu kārtis...</div>
           ) : null}
           <section className="card-grid">
             {reading.cards.map((card, index) => {
@@ -182,12 +182,12 @@ export default function OverlayClient({ searchParams }) {
                       />
                       <h2 className="card-title">{card.name}</h2>
                       <p className="card-text card-ai">
-                        <span className="ai-label">AI insight:</span>{" "}
+                        <span className="ai-label">AI skaidrojums:</span>{" "}
                         {card.interpretation}
                       </p>
                     </>
                   ) : (
-                    <div className="card-back">Card is being revealed...</div>
+                    <div className="card-back">Kārts tiek atklāta...</div>
                   )}
                 </article>
               );
@@ -196,7 +196,7 @@ export default function OverlayClient({ searchParams }) {
 
           {reading.summary && revealCount >= reading.cards.length ? (
             <section className="summary">
-              <h2 className="summary-title">Final summary</h2>
+              <h2 className="summary-title">Kopējā aina</h2>
               <ul className="summary-list">
                 {reading.summary.lines?.map((line, index) => (
                   <li key={`summary-${index}`}>{line}</li>
@@ -208,7 +208,7 @@ export default function OverlayClient({ searchParams }) {
 
           {reading.question && revealCount >= reading.cards.length ? (
             <section className="summary">
-              <h2 className="summary-title">Viewer question</h2>
+              <h2 className="summary-title">Skatītāja jautājums</h2>
               <p className="summary-final">{reading.question}</p>
             </section>
           ) : null}
