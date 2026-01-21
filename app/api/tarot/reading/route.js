@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
-import { buildReading, fetchTarotCards } from "../../../../lib/tarot";
-import { getLatestReading, setLatestReading } from "../../../../lib/tarotStore";
+import {
+  buildReading,
+  drawFromDeck,
+  fetchTarotCards,
+} from "../../../../lib/tarot";
+import {
+  getDeckState,
+  getLatestReading,
+  setDeckState,
+  setLatestReading,
+} from "../../../../lib/tarotStore";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +73,8 @@ export async function POST(request) {
   const count = Number(payload?.count ?? process.env.TAROT_CARD_COUNT ?? 3);
   const viewer = buildViewer(payload);
   const gift = buildGift(payload);
-  const question = payload?.question || payload?.comment || payload?.message || null;
+  const question =
+    payload?.question || payload?.comment || payload?.message || null;
 
   let cards;
 
@@ -77,11 +87,15 @@ export async function POST(request) {
     );
   }
 
+  const { drawn, deckState } = drawFromDeck(cards, count, getDeckState());
+  setDeckState(deckState);
+
   const reading = buildReading(cards, {
     count,
     viewer,
     gift,
     question,
+    drawnCards: drawn,
   });
 
   setLatestReading(reading);
