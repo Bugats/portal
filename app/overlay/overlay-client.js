@@ -103,7 +103,7 @@ export default function OverlayClient({ searchParams }) {
 
   const [reading, setReading] = useState(null);
   const [startTime, setStartTime] = useState(null);
-  const [, setTick] = useState(0);
+  const [tick, setTick] = useState(0);
   const [error, setError] = useState("");
   const completedReadingRef = useRef(null);
 
