@@ -3,6 +3,7 @@ import {
   buildReading,
   drawFromDeck,
   fetchTarotCards,
+  DEFAULT_THEME,
 } from "../../../../lib/tarot";
 import {
   getDeckState,
@@ -74,7 +75,10 @@ export async function POST(request) {
   const viewer = buildViewer(payload);
   const gift = buildGift(payload);
   const question =
-    payload?.question || payload?.comment || payload?.message || null;
+    payload?.question ||
+    payload?.comment ||
+    payload?.message ||
+    DEFAULT_THEME;
 
   let cards;
 

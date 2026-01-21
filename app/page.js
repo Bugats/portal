@@ -87,8 +87,8 @@ export default function HomePage() {
       <footer className="footer">
         <div>
           Overlay: <a href="/overlay">/overlay</a> (lasa{" "}
-          <code>/api/tarot/reading</code>, atklāšanas aizture ar{" "}
-          <code>?delay=5000</code>).
+          <code>/api/tarot/reading</code>, parametri{" "}
+          <code>?celebrate=7000</code> un <code>?step=20000</code>).
         </div>
         <div>
           Webhook: <code>POST /api/tiktok/gift</code> ar{" "}

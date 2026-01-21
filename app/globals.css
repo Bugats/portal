@@ -251,6 +251,60 @@ main {
   font-size: 15px;
 }
 
+.summary-theme {
+  color: var(--accent);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.celebration {
+  padding: 24px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  text-align: center;
+  display: grid;
+  gap: 10px;
+}
+
+.celebration-title {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.celebration-subtitle {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.celebration-meta {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.phase-note {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.overlay .card-title {
+  font-size: 22px;
+}
+
+.overlay .card-text {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.overlay .summary-list li {
+  font-size: 16px;
+}
+
+.overlay .summary-final {
+  font-size: 16px;
+}
+
 .empty-state {
   padding: 20px;
   border-radius: 16px;

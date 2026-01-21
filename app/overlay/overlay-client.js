@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 function getSearchParam(searchParams, key) {
   const value = searchParams?.[key];
@@ -32,12 +32,25 @@ function formatTime(timestamp) {
 }
 
 export default function OverlayClient({ searchParams }) {
-  const revealMs = useMemo(() => {
-    const raw = Number(getSearchParam(searchParams, "delay") ?? 5000);
+  const activeReadingIdRef = useRef(null);
+  const celebrateMs = useMemo(() => {
+    const raw = Number(getSearchParam(searchParams, "celebrate") ?? 7000);
     if (!Number.isFinite(raw)) {
-      return 5000;
+      return 7000;
     }
     return Math.min(Math.max(raw, 1000), 20000);
+  }, [searchParams]);
+  const stepMs = useMemo(() => {
+    const raw = Number(
+      getSearchParam(searchParams, "step") ??
+        getSearchParam(searchParams, "card") ??
+        getSearchParam(searchParams, "delay") ??
+        20000
+    );
+    if (!Number.isFinite(raw)) {
+      return 20000;
+    }
+    return Math.min(Math.max(raw, 5000), 60000);
   }, [searchParams]);
   const pollMs = useMemo(() => {
     const raw = Number(getSearchParam(searchParams, "poll") ?? 3000);
@@ -49,7 +62,8 @@ export default function OverlayClient({ searchParams }) {
   const transparent = getSearchParam(searchParams, "transparent") === "1";
 
   const [reading, setReading] = useState(null);
-  const [revealCount, setRevealCount] = useState(0);
+  const [startTime, setStartTime] = useState(null);
+  const [, setTick] = useState(0);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -68,6 +82,13 @@ export default function OverlayClient({ searchParams }) {
         const data = await response.json();
         if (isMounted) {
           setReading(data.reading ?? null);
+          if (
+            data.reading?.id &&
+            data.reading.id !== activeReadingIdRef.current
+          ) {
+            activeReadingIdRef.current = data.reading.id;
+            setStartTime(Date.now());
+          }
           setError("");
         }
       } catch (err) {
@@ -87,27 +108,12 @@ export default function OverlayClient({ searchParams }) {
   }, [pollMs]);
 
   useEffect(() => {
-    if (!reading?.cards?.length) {
-      setRevealCount(0);
-      return;
-    }
+    const interval = setInterval(() => {
+      setTick((value) => value + 1);
+    }, 500);
 
-    const total = reading.cards.length;
-    setRevealCount(1);
-
-    const timers = [];
-    for (let index = 2; index <= total; index += 1) {
-      timers.push(
-        setTimeout(() => {
-          setRevealCount(index);
-        }, revealMs * (index - 1))
-      );
-    }
-
-    return () => {
-      timers.forEach((timer) => clearTimeout(timer));
-    };
-  }, [reading?.id, reading?.cards?.length, revealMs]);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (transparent) {
@@ -151,30 +157,60 @@ export default function OverlayClient({ searchParams }) {
         <div className="empty-state">Gaida dāvanas trigeri...</div>
       ) : (
         <>
-          {revealCount === 0 ? (
-            <div className="empty-state">Jaucu kārtis...</div>
-          ) : null}
-          <section className="card-grid">
-            {reading.cards.map((card, index) => {
-              const isRevealed = index < revealCount;
+          {(() => {
+            const totalCards = reading.cards?.length ?? 0;
+            const elapsed = startTime ? Date.now() - startTime : 0;
+            const celebration = elapsed < celebrateMs;
+            const cardsStart = celebrateMs;
+            const cardsElapsed = Math.max(elapsed - cardsStart, 0);
+            const currentIndex = Math.min(
+              Math.floor(cardsElapsed / stepMs),
+              Math.max(totalCards - 1, 0)
+            );
+            const showingAll =
+              totalCards > 0 &&
+              elapsed >= cardsStart + stepMs * totalCards;
+            const cardsToShow = showingAll
+              ? reading.cards
+              : reading.cards?.length
+              ? [reading.cards[currentIndex]]
+              : [];
+            const theme = reading.question || "Kāda būs šī nedēļa?";
+            const secondsLeft = Math.max(
+              0,
+              Math.ceil((celebrateMs - elapsed) / 1000)
+            );
 
+            if (celebration) {
               return (
-                <article
-                  className={`card ${isRevealed ? "" : "card-placeholder"}`}
-                  key={`${card.name_short}-${index}`}
-                >
-                  <div className="card-header">
-                    <span className="badge">
-                      {card.position ?? `Card ${index + 1}`}
-                    </span>
-                    {isRevealed ? (
-                      <span className="card-type">
-                        {formatArcana(card)} · {formatOrientation(card)}
-                      </span>
-                    ) : null}
+                <div className="celebration">
+                  <div className="celebration-title">
+                    Paldies par dāvanu!
                   </div>
-                  {isRevealed ? (
-                    <>
+                  <div className="celebration-subtitle">
+                    Taro sākas pēc {secondsLeft} sekundēm
+                  </div>
+                  <div className="celebration-meta">
+                    {reading.viewer?.name ? `Skatītājs: ${reading.viewer.name}` : ""}
+                    {reading.gift?.name ? ` · Dāvana: ${reading.gift.name}` : ""}
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <>
+                <section className="card-grid">
+                  {cardsToShow.map((card, index) => (
+                    <article className="card" key={`${card.name_short}-${index}`}>
+                      <div className="card-header">
+                        <span className="badge">
+                          {card.position ?? `Kārts ${currentIndex + 1}`}
+                        </span>
+                        <span className="card-type">
+                          {formatArcana(card)} · {formatOrientation(card)}
+                        </span>
+                      </div>
                       <img
                         className="card-image"
                         src={card.imageUrl}
@@ -185,33 +221,30 @@ export default function OverlayClient({ searchParams }) {
                         <span className="ai-label">AI skaidrojums:</span>{" "}
                         {card.interpretation}
                       </p>
-                    </>
-                  ) : (
-                    <div className="card-back">Kārts tiek atklāta...</div>
-                  )}
-                </article>
-              );
-            })}
-          </section>
+                      {!showingAll ? (
+                        <div className="phase-note">
+                          Kārts {currentIndex + 1} no {totalCards}
+                        </div>
+                      ) : null}
+                    </article>
+                  ))}
+                </section>
 
-          {reading.summary && revealCount >= reading.cards.length ? (
-            <section className="summary">
-              <h2 className="summary-title">Kopējā aina</h2>
-              <ul className="summary-list">
-                {reading.summary.lines?.map((line, index) => (
-                  <li key={`summary-${index}`}>{line}</li>
-                ))}
-              </ul>
-              <p className="summary-final">{reading.summary.finalText}</p>
-            </section>
-          ) : null}
-
-          {reading.question && revealCount >= reading.cards.length ? (
-            <section className="summary">
-              <h2 className="summary-title">Skatītāja jautājums</h2>
-              <p className="summary-final">{reading.question}</p>
-            </section>
-          ) : null}
+                {showingAll && reading.summary ? (
+                  <section className="summary">
+                    <h2 className="summary-title">Kopējā aina</h2>
+                    <div className="summary-theme">Tēma: {theme}</div>
+                    <ul className="summary-list">
+                      {reading.summary.lines?.map((line, index) => (
+                        <li key={`summary-${index}`}>{line}</li>
+                      ))}
+                    </ul>
+                    <p className="summary-final">{reading.summary.finalText}</p>
+                  </section>
+                ) : null}
+              </>
+            );
+          })()}
         </>
       )}
     </main>
