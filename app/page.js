@@ -88,7 +88,8 @@ export default function HomePage() {
         <div>
           Overlay: <a href="/overlay">/overlay</a> (lasa{" "}
           <code>/api/tarot/reading</code>, parametri{" "}
-          <code>?celebrate=7000</code> un <code>?step=20000</code>).
+          <code>?celebrate=7000</code> un <code>?step=20000</code>. Tīram
+          overlay lieto <code>&amp;minimal=1</code>.)
         </div>
         <div>
           Webhook: <code>POST /api/tiktok/gift</code> ar{" "}

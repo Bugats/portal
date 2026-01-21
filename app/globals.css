@@ -305,6 +305,10 @@ main {
   font-size: 16px;
 }
 
+.overlay-blank {
+  min-height: 1px;
+}
+
 .empty-state {
   padding: 20px;
   border-radius: 16px;

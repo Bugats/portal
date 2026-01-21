@@ -33,6 +33,10 @@ function formatTime(timestamp) {
 
 export default function OverlayClient({ searchParams }) {
   const activeReadingIdRef = useRef(null);
+  const minimal =
+    getSearchParam(searchParams, "minimal") === "1" ||
+    getSearchParam(searchParams, "clean") === "1";
+  const showMeta = !minimal;
   const celebrateMs = useMemo(() => {
     const raw = Number(getSearchParam(searchParams, "celebrate") ?? 7000);
     if (!Number.isFinite(raw)) {
@@ -126,35 +130,37 @@ export default function OverlayClient({ searchParams }) {
   }, [transparent]);
 
   return (
-    <main className="container overlay">
-      <header className="header">
-        <div className="eyebrow">Dāvanu pareģojums tiešraidē</div>
-        <h1 className="title">Trīs kāršu tarot</h1>
-        <p className="subtitle">
-          Overlay atjaunojas, kad nostrādā dāvanas trigeris. Pievieno šo lapu
-          Live Studio kā pārlūka avotu.
-        </p>
-        <div className="meta">
-          {reading?.viewer?.name ? (
-            <span className="badge">Skatītājs: {reading.viewer.name}</span>
-          ) : null}
-          {reading?.gift?.name ? (
-            <span className="badge">Dāvana: {reading.gift.name}</span>
-          ) : null}
-          {reading?.createdAt ? (
-            <span className="card-type">{formatTime(reading.createdAt)}</span>
-          ) : null}
-        </div>
-      </header>
+    <main className={`container overlay ${minimal ? "overlay-minimal" : ""}`}>
+      {!minimal ? (
+        <header className="header">
+          <div className="eyebrow">Dāvanu pareģojums tiešraidē</div>
+          <h1 className="title">Trīs kāršu tarot</h1>
+          <p className="subtitle">
+            Overlay atjaunojas, kad nostrādā dāvanas trigeris. Pievieno šo lapu
+            Live Studio kā pārlūka avotu.
+          </p>
+          <div className="meta">
+            {reading?.viewer?.name ? (
+              <span className="badge">Skatītājs: {reading.viewer.name}</span>
+            ) : null}
+            {reading?.gift?.name ? (
+              <span className="badge">Dāvana: {reading.gift.name}</span>
+            ) : null}
+            {reading?.createdAt ? (
+              <span className="card-type">{formatTime(reading.createdAt)}</span>
+            ) : null}
+          </div>
+        </header>
+      ) : null}
 
-      {error ? (
+      {error && !minimal ? (
         <div className="error" role="alert">
           {error}
         </div>
       ) : null}
 
       {!reading ? (
-        <div className="empty-state">Gaida dāvanas trigeri...</div>
+        minimal ? null : <div className="empty-state">Gaida dāvanas trigeri...</div>
       ) : (
         <>
           {(() => {
@@ -190,10 +196,16 @@ export default function OverlayClient({ searchParams }) {
                   <div className="celebration-subtitle">
                     Taro sākas pēc {secondsLeft} sekundēm
                   </div>
-                  <div className="celebration-meta">
-                    {reading.viewer?.name ? `Skatītājs: ${reading.viewer.name}` : ""}
-                    {reading.gift?.name ? ` · Dāvana: ${reading.gift.name}` : ""}
-                  </div>
+                  {showMeta ? (
+                    <div className="celebration-meta">
+                      {reading.viewer?.name
+                        ? `Skatītājs: ${reading.viewer.name}`
+                        : ""}
+                      {reading.gift?.name
+                        ? ` · Dāvana: ${reading.gift.name}`
+                        : ""}
+                    </div>
+                  ) : null}
                 </div>
               );
             }
@@ -221,7 +233,7 @@ export default function OverlayClient({ searchParams }) {
                         <span className="ai-label">AI skaidrojums:</span>{" "}
                         {card.interpretation}
                       </p>
-                      {!showingAll ? (
+                      {!showingAll && showMeta ? (
                         <div className="phase-note">
                           Kārts {currentIndex + 1} no {totalCards}
                         </div>
