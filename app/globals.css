@@ -21,6 +21,25 @@ body {
   line-height: 1.5;
 }
 
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+}
+
 main {
   display: block;
 }
@@ -164,4 +183,51 @@ main {
   margin-top: 32px;
   font-size: 12px;
   color: var(--muted);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.summary {
+  margin-top: 32px;
+  padding: 20px 22px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+}
+
+.summary-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.summary-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.summary-list li {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.summary-final {
+  margin: 14px 0 0;
+  font-size: 15px;
+}
+
+.empty-state {
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px dashed var(--border);
+  text-align: center;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.02);
 }

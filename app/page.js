@@ -85,8 +85,19 @@ export default function HomePage() {
       </section>
 
       <footer className="footer">
-        Data source: tarotapi.dev. Images hosted on GitHub (renanbotasse/tarot,
-        MIT license).
+        <div>
+          Overlay: <a href="/overlay">/overlay</a> (polls{" "}
+          <code>/api/tarot/reading</code>).
+        </div>
+        <div>
+          Webhook: <code>POST /api/tiktok/gift</code> with{" "}
+          <code>{`{ giftName, userName }`}</code>. Configure trigger gifts with{" "}
+          <code>TAROT_GIFT_TRIGGER</code> (default: train).
+        </div>
+        <div>
+          Data source: tarotapi.dev. Images hosted on GitHub
+          (renanbotasse/tarot, MIT license).
+        </div>
       </footer>
     </main>
   );
