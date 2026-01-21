@@ -87,7 +87,8 @@ export default function HomePage() {
       <footer className="footer">
         <div>
           Overlay: <a href="/overlay">/overlay</a> (polls{" "}
-          <code>/api/tarot/reading</code>).
+          <code>/api/tarot/reading</code>, reveal delay via{" "}
+          <code>?delay=5000</code>).
         </div>
         <div>
           Webhook: <code>POST /api/tiktok/gift</code> with{" "}

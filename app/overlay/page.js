@@ -3,8 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-const POSITIONS = ["Past", "Present", "Future", "Advice", "Outcome"];
-
 function formatArcana(card) {
   return card.type === "major" ? "Major Arcana" : "Minor Arcana";
 }
@@ -28,6 +26,13 @@ function formatTime(timestamp) {
 
 export default function OverlayPage() {
   const searchParams = useSearchParams();
+  const revealMs = useMemo(() => {
+    const raw = Number(searchParams.get("delay") ?? 5000);
+    if (!Number.isFinite(raw)) {
+      return 5000;
+    }
+    return Math.min(Math.max(raw, 1000), 20000);
+  }, [searchParams]);
   const pollMs = useMemo(() => {
     const raw = Number(searchParams.get("poll") ?? 3000);
     if (!Number.isFinite(raw)) {
@@ -38,6 +43,7 @@ export default function OverlayPage() {
   const transparent = searchParams.get("transparent") === "1";
 
   const [reading, setReading] = useState(null);
+  const [revealCount, setRevealCount] = useState(0);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -73,6 +79,29 @@ export default function OverlayPage() {
       clearInterval(interval);
     };
   }, [pollMs]);
+
+  useEffect(() => {
+    if (!reading?.cards?.length) {
+      setRevealCount(0);
+      return;
+    }
+
+    const total = reading.cards.length;
+    setRevealCount(1);
+
+    const timers = [];
+    for (let index = 2; index <= total; index += 1) {
+      timers.push(
+        setTimeout(() => {
+          setRevealCount(index);
+        }, revealMs * (index - 1))
+      );
+    }
+
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+    };
+  }, [reading?.id, reading?.cards?.length, revealMs]);
 
   useEffect(() => {
     if (transparent) {
@@ -116,31 +145,52 @@ export default function OverlayPage() {
         <div className="empty-state">Waiting for a gift trigger...</div>
       ) : (
         <>
+          {revealCount === 0 ? (
+            <div className="empty-state">Shuffling cards...</div>
+          ) : null}
           <section className="card-grid">
-            {reading.cards.map((card, index) => (
-              <article className="card" key={`${card.name_short}-${index}`}>
-                <div className="card-header">
-                  <span className="badge">
-                    {POSITIONS[index] ?? `Card ${index + 1}`}
-                  </span>
-                  <span className="card-type">
-                    {formatArcana(card)} · {formatOrientation(card)}
-                  </span>
-                </div>
-                <img
-                  className="card-image"
-                  src={card.imageUrl}
-                  alt={card.name}
-                />
-                <h2 className="card-title">{card.name}</h2>
-                <p className="card-text">{card.meaning}</p>
-              </article>
-            ))}
+            {reading.cards.map((card, index) => {
+              const isRevealed = index < revealCount;
+
+              return (
+                <article
+                  className={`card ${isRevealed ? "" : "card-placeholder"}`}
+                  key={`${card.name_short}-${index}`}
+                >
+                  <div className="card-header">
+                    <span className="badge">
+                      {card.position ?? `Card ${index + 1}`}
+                    </span>
+                    {isRevealed ? (
+                      <span className="card-type">
+                        {formatArcana(card)} · {formatOrientation(card)}
+                      </span>
+                    ) : null}
+                  </div>
+                  {isRevealed ? (
+                    <>
+                      <img
+                        className="card-image"
+                        src={card.imageUrl}
+                        alt={card.name}
+                      />
+                      <h2 className="card-title">{card.name}</h2>
+                      <p className="card-text card-ai">
+                        <span className="ai-label">AI insight:</span>{" "}
+                        {card.interpretation}
+                      </p>
+                    </>
+                  ) : (
+                    <div className="card-back">Card is being revealed...</div>
+                  )}
+                </article>
+              );
+            })}
           </section>
 
-          {reading.summary ? (
+          {reading.summary && revealCount >= reading.cards.length ? (
             <section className="summary">
-              <h2 className="summary-title">Reading summary</h2>
+              <h2 className="summary-title">Final summary</h2>
               <ul className="summary-list">
                 {reading.summary.lines?.map((line, index) => (
                   <li key={`summary-${index}`}>{line}</li>
@@ -150,7 +200,7 @@ export default function OverlayPage() {
             </section>
           ) : null}
 
-          {reading.question ? (
+          {reading.question && revealCount >= reading.cards.length ? (
             <section className="summary">
               <h2 className="summary-title">Viewer question</h2>
               <p className="summary-final">{reading.question}</p>

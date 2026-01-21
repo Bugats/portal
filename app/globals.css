@@ -135,6 +135,10 @@ main {
   min-height: 100%;
 }
 
+.card-placeholder {
+  opacity: 0.7;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -168,6 +172,20 @@ main {
   background: #0f0f18;
 }
 
+.card-back {
+  min-height: 320px;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  font-size: 14px;
+}
+
 .card-title {
   font-size: 18px;
   margin: 0;
@@ -177,6 +195,16 @@ main {
   color: var(--muted);
   font-size: 14px;
   margin: 0;
+}
+
+.card-ai {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.ai-label {
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .footer {
