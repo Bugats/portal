@@ -226,7 +226,8 @@ export default function OverlayClient({ searchParams }) {
       ) : (
         <>
           {(() => {
-            const totalCards = reading.cards?.length ?? 0;
+            const cards = Array.isArray(reading.cards) ? reading.cards : [];
+            const totalCards = cards.length;
             const elapsed = startTime ? Date.now() - startTime : 0;
             const celebration = elapsed < celebrateMs;
             const cardsStart = celebrateMs;
@@ -240,9 +241,9 @@ export default function OverlayClient({ searchParams }) {
             const showingAll = totalCards > 0 && elapsed >= summaryStart;
             const expired = totalCards > 0 && elapsed >= summaryEnd;
             const cardsToShow = showingAll
-              ? reading.cards
-              : reading.cards?.length
-              ? [reading.cards[currentIndex]]
+              ? cards
+              : cards.length
+              ? [cards[currentIndex]]
               : [];
             const theme = reading.question || "Kāda būs šī nedēļa?";
             const secondsLeft = Math.max(
@@ -271,7 +272,7 @@ export default function OverlayClient({ searchParams }) {
             return (
               <>
                 <section className="card-grid">
-                  {cardsToShow.map((card, index) => (
+                  {cardsToShow.filter(Boolean).map((card, index) => (
                     <article className="card" key={`${card.name_short}-${index}`}>
                       <div className="card-header">
                         <span className="badge">
