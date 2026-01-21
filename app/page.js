@@ -93,7 +93,9 @@ export default function HomePage() {
         <div>
           Webhook: <code>POST /api/tiktok/gift</code> with{" "}
           <code>{`{ giftName, userName }`}</code>. Configure trigger gifts with{" "}
-          <code>TAROT_GIFT_TRIGGER</code> (default: train).
+          <code>TAROT_GIFT_TRIGGER</code> (default: train), or use{" "}
+          <code>TAROT_GIFT_IDS</code> / <code>TAROT_GIFT_MIN_VALUE</code> for
+          language-proof matching.
         </div>
         <div>
           Data source: tarotapi.dev. Images hosted on GitHub

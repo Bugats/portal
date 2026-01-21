@@ -21,12 +21,25 @@ const TRIGGER_GIFTS_COMPACT = TRIGGER_GIFTS.map((gift) =>
   gift.replace(/[^a-z0-9]/g, "")
 );
 
+const TRIGGER_GIFT_IDS = (process.env.TAROT_GIFT_IDS || "")
+  .split(",")
+  .map((gift) => gift.trim())
+  .filter(Boolean);
+
+const TRIGGER_GIFT_MIN_VALUE = Number(
+  process.env.TAROT_GIFT_MIN_VALUE ?? 0
+);
+
 function normalizeGiftName(name) {
   return name ? name.toString().trim().toLowerCase() : "";
 }
 
-function isTriggerGift(name) {
-  if (!name) {
+function normalizeGiftId(id) {
+  return id === null || id === undefined ? "" : String(id).trim();
+}
+
+function isTriggerGift(gift) {
+  if (!gift) {
     return false;
   }
 
@@ -34,7 +47,18 @@ function isTriggerGift(name) {
     return true;
   }
 
-  const normalized = normalizeGiftName(name);
+  const giftId = normalizeGiftId(gift.id);
+  const giftValue = Number(gift.value ?? 0);
+
+  if (giftId && TRIGGER_GIFT_IDS.includes(giftId)) {
+    return true;
+  }
+
+  if (TRIGGER_GIFT_MIN_VALUE > 0 && giftValue >= TRIGGER_GIFT_MIN_VALUE) {
+    return true;
+  }
+
+  const normalized = normalizeGiftName(gift.name);
   const compact = normalized.replace(/[^a-z0-9]/g, "");
 
   return (
@@ -104,7 +128,7 @@ export async function POST(request) {
     );
   }
 
-  if (!isTriggerGift(gift.name)) {
+  if (!isTriggerGift(gift)) {
     return NextResponse.json({ status: "ignored" });
   }
 
