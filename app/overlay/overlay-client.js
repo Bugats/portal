@@ -31,6 +31,35 @@ function formatTime(timestamp) {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+function hashString(input) {
+  if (!input) {
+    return 0;
+  }
+
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash * 31 + input.charCodeAt(i)) % 2147483647;
+  }
+  return hash;
+}
+
+function pickCelebrationMessage(reading) {
+  const viewer = reading?.viewer?.name;
+  const gift = reading?.gift?.name;
+  const viewerText = viewer ? `, ${viewer}` : "";
+  const giftText = gift ? ` par dāvanu "${gift}"` : " par dāvanu";
+
+  const variants = [
+    `Paldies${viewerText}! Tava dāvana iedarbina tarot.`,
+    `Super${viewerText}! Paldies${giftText}.`,
+    `Paldies${viewerText}! Sajaucam kārtis un sākam izlikumu.`,
+    `Liels paldies${viewerText}${giftText}!`,
+  ];
+
+  const index = hashString(reading?.id) % variants.length;
+  return variants[index];
+}
+
 export default function OverlayClient({ searchParams }) {
   const activeReadingIdRef = useRef(null);
   const minimal =
@@ -188,24 +217,13 @@ export default function OverlayClient({ searchParams }) {
             );
 
             if (celebration) {
+              const message = pickCelebrationMessage(reading);
               return (
                 <div className="celebration">
-                  <div className="celebration-title">
-                    Paldies par dāvanu!
-                  </div>
+                  <div className="celebration-title">{message}</div>
                   <div className="celebration-subtitle">
                     Taro sākas pēc {secondsLeft} sekundēm
                   </div>
-                  {showMeta ? (
-                    <div className="celebration-meta">
-                      {reading.viewer?.name
-                        ? `Skatītājs: ${reading.viewer.name}`
-                        : ""}
-                      {reading.gift?.name
-                        ? ` · Dāvana: ${reading.gift.name}`
-                        : ""}
-                    </div>
-                  ) : null}
                 </div>
               );
             }
